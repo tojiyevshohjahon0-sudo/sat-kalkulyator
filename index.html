@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f5f7ff">
+    <title>SAT Ball Kalkulyatori</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #18233b;
+            --muted: #68748b;
+            --blue: #4f63e8;
+            --purple: #7956d8;
+            --line: #e6e9f2;
+            --surface: #fff;
+            --page: #f5f7ff;
+            --field: #fff;
+            --field-border: #dfe3ee;
+            --soft: #fafbff;
+            --result: #f4f3ff;
+            --notice-border: #e6e9f2;
+            --breakdown: rgba(255, 255, 255, .75);
+            --label: #45516a;
+            --result-muted: #596583;
+            --score-color: #2939ac;
+            --track: #edf0f7;
+        }
+
+        body.dark {
+            color-scheme: dark;
+            --ink: #edf0ff;
+            --muted: #a5aec4;
+            --blue: #9ba8ff;
+            --purple: #c0a7ff;
+            --line: #343952;
+            --surface: #20243a;
+            --page: #141729;
+            --field: #191d30;
+            --field-border: #424862;
+            --soft: #252a42;
+            --result: #292744;
+            --notice-border: #343952;
+            --breakdown: rgba(25, 29, 48, .7);
+            --label: #c1c9dd;
+            --result-muted: #bdc5dc;
+            --score-color: #b5bdff;
+            --track: #353a52;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 42px 20px;
+            background:
+                radial-gradient(ellipse at 9% 4%, rgba(119, 139, 255, .14), transparent 32%),
+                radial-gradient(ellipse at 94% 90%, rgba(165, 121, 255, .12), transparent 30%),
+                var(--page);
+            color: var(--ink);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+            transition: background .2s, color .2s;
+        }
+
+        .page { width: min(100%, 800px); margin: 0 auto; }
+        .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 30px; }
+        .brand-copy { flex: 1; }
+        .theme-toggle {
+            min-height: 46px;
+            padding: 10px 15px;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            background: var(--surface);
+            color: var(--ink);
+            cursor: pointer;
+            font: inherit;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .theme-toggle:hover { border-color: var(--blue); }
+        .brand-icon {
+            display: grid;
+            width: 50px;
+            height: 50px;
+            place-items: center;
+            flex: 0 0 50px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, var(--blue), var(--purple));
+            color: white;
+            box-shadow: 0 7px 18px rgba(79, 99, 232, .24);
+        }
+        .brand-icon svg { width: 27px; height: 27px; }
+        .brand-name { font-size: 18px; font-weight: 800; letter-spacing: -.3px; }
+        .brand-subtitle { margin-top: 3px; color: var(--muted); font-size: 14px; }
+
+        .intro { margin-bottom: 25px; }
+        .eyebrow {
+            margin: 0 0 9px;
+            color: var(--blue);
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+        h1 { margin: 0; font-size: clamp(34px, 6vw, 48px); letter-spacing: -1.7px; line-height: 1.12; }
+        .intro-copy { max-width: 600px; margin: 14px 0 0; color: var(--muted); font-size: 17px; line-height: 1.7; }
+
+        .calculator {
+            overflow: hidden;
+            border: 1px solid rgba(224, 228, 241, .9);
+            border-radius: 22px;
+            background: var(--surface);
+            box-shadow: 0 18px 55px rgba(36, 49, 91, .09);
+        }
+        .sections { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 24px; }
+        .section-card {
+            padding: 22px;
+            border: 1px solid var(--line);
+            border-radius: 17px;
+            background: linear-gradient(155deg, var(--surface), var(--soft));
+        }
+        .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .section-heading h2 { margin: 0; font-size: 19px; letter-spacing: -.3px; }
+        .section-mark {
+            display: grid;
+            width: 40px;
+            height: 40px;
+            place-items: center;
+            border-radius: 11px;
+            background: #eef0ff;
+            color: var(--blue);
+            font-size: 17px;
+            font-weight: 800;
+        }
+        .math .section-mark { background: #f2edff; color: var(--purple); }
+        .section-description { margin: 10px 0 20px; color: var(--muted); font-size: 15px; }
+        .field-label { display: block; margin-bottom: 9px; color: var(--label); font-size: 15px; font-weight: 700; }
+        .input-wrap { position: relative; }
+        input[type="number"] {
+            width: 100%;
+            height: 58px;
+            padding: 0 68px 0 17px;
+            border: 1.5px solid var(--field-border);
+            border-radius: 12px;
+            outline: none;
+            background: var(--field);
+            color: var(--ink);
+            font: inherit;
+            font-size: 22px;
+            font-weight: 750;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        input[type="number"]:focus { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(79, 99, 232, .11); }
+        .math input[type="number"]:focus { border-color: var(--purple); box-shadow: 0 0 0 4px rgba(121, 86, 216, .11); }
+        .input-suffix { position: absolute; top: 50%; right: 14px; color: var(--muted); font-size: 14px; transform: translateY(-50%); }
+        .input-error { min-height: 20px; margin: 7px 0 0; color: #c03950; font-size: 14px; }
+        .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .module-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); }
+        .module-title { display: block; margin: 0 0 10px; color: var(--muted); font-size: 14px; font-weight: 700; }
+        .module-card input[type="number"] { height: 50px; padding-left: 12px; font-size: 19px; }
+        .module-card .input-suffix { right: 11px; font-size: 13px; }
+        input[type="range"] {
+            display: block;
+            width: 100%;
+            height: 34px;
+            margin: 10px 0 0;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track { height: 8px; border-radius: 99px; background: var(--track); }
+        input[type="range"]::-moz-range-track { height: 8px; border-radius: 99px; background: var(--track); }
+        input[type="range"]::-webkit-slider-thumb {
+            width: 24px;
+            height: 24px;
+            margin-top: -8px;
+            appearance: none;
+            border: 3px solid var(--surface);
+            border-radius: 50%;
+            background: var(--blue);
+            box-shadow: 0 1px 5px rgba(26, 37, 83, .3);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 19px;
+            height: 19px;
+            border: 3px solid var(--surface);
+            border-radius: 50%;
+            background: var(--blue);
+            box-shadow: 0 1px 5px rgba(26, 37, 83, .3);
+        }
+        input[type="range"]:focus-visible { outline: 3px solid rgba(79, 99, 232, .35); outline-offset: 3px; border-radius: 6px; }
+        .progress-track { height: 8px; margin-top: 12px; overflow: hidden; border-radius: 99px; background: var(--track); }
+        .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #6477ff, #96a2ff); transition: width .3s ease; }
+        .math .progress-fill { background: linear-gradient(90deg, #825fe2, #b39bf3); }
+
+        .result {
+            padding: 23px 24px 22px;
+            background: linear-gradient(120deg, var(--result), var(--soft));
+            text-align: center;
+        }
+        .result-label { margin: 0; color: var(--result-muted); font-size: 16px; font-weight: 700; }
+        .total-score { margin: 7px 0 3px; color: var(--score-color); font-size: clamp(54px, 10vw, 68px); font-weight: 850; letter-spacing: -2px; line-height: 1.1; }
+        .score-range { margin: 0; color: var(--muted); font-size: 15px; }
+        .breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 22px; }
+        .breakdown-item { padding: 15px; border: 1px solid var(--line); border-radius: 14px; background: var(--breakdown); }
+        .breakdown-title { display: block; margin-bottom: 6px; color: var(--muted); font-size: 14px; }
+        .breakdown-score { font-size: 21px; font-weight: 800; }
+        .notice { display: flex; gap: 12px; padding: 18px 24px; border-top: 1px solid var(--notice-border); color: var(--muted); font-size: 14px; line-height: 1.7; }
+        .notice-icon { flex: 0 0 auto; color: var(--blue); font-size: 18px; font-weight: 800; }
+        .notice p { margin: 0; }
+        .footer { margin: 20px 0 0; color: var(--muted); font-size: 14px; text-align: center; }
+
+        @media (max-width: 580px) {
+            body { padding: 27px 14px; }
+            .brand { gap: 10px; margin-bottom: 25px; }
+            .brand-icon { width: 46px; height: 46px; flex-basis: 46px; }
+            .brand-icon svg { width: 25px; height: 25px; }
+            .brand-name { font-size: 16px; }
+            .brand-subtitle { font-size: 12px; }
+            .theme-toggle { min-height: 44px; padding: 9px 10px; font-size: 12px; }
+            .intro-copy { font-size: 16px; }
+            .sections { grid-template-columns: 1fr; gap: 14px; padding: 16px; }
+            .section-card { padding: 19px; }
+            .module-card { padding: 12px; }
+            .module-title { font-size: 13px; }
+            .result { padding: 21px 16px; }
+            .notice { padding: 16px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <header class="brand" aria-label="SAT Ball Kalkulyatori">
+            <div class="brand-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="3" width="14" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M8 7h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="brand-copy">
+                <div class="brand-name">SAT Ball Kalkulyatori</div>
+                <div class="brand-subtitle">Natijangizni tezda hisoblang</div>
+            </div>
+            <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false">🌙 Tungi rejim</button>
+        </header>
+
+        <section class="intro">
+            <p class="eyebrow">Digital SAT</p>
+            <h1>Taxminiy ballingizni biling</h1>
+            <p class="intro-copy">Har bir bo‘limda nechta savolga to‘g‘ri javob berganingizni kiriting. Kalkulyator taxminiy SAT ballingizni chiqaradi.</p>
+        </section>
+
+        <section class="calculator" aria-label="SAT ball kalkulyatori">
+            <div class="sections">
+                <section class="section-card reading">
+                    <div class="section-heading">
+                        <h2>Reading and Writing</h2>
+                        <span class="section-mark" aria-hidden="true">R</span>
+                    </div>
+                    <p class="section-description">Jami 54 ta savol</p>
+                    <span class="field-label">Modullar bo‘yicha to‘g‘ri javoblar</span>
+                    <div class="module-grid">
+                        <div class="module-card">
+                            <label class="module-title" for="readingModule1">1-modul · 27 savol</label>
+                            <div class="input-wrap"><input id="readingModule1" type="number" min="0" max="27" step="1" value="0" inputmode="numeric" aria-describedby="readingError"><span class="input-suffix">/ 27</span></div>
+                            <input id="readingModule1Range" type="range" min="0" max="27" value="0" aria-label="Reading and Writing 1-modul to‘g‘ri javoblari">
+                        </div>
+                        <div class="module-card">
+                            <label class="module-title" for="readingModule2">2-modul · 27 savol</label>
+                            <div class="input-wrap"><input id="readingModule2" type="number" min="0" max="27" step="1" value="0" inputmode="numeric" aria-describedby="readingError"><span class="input-suffix">/ 27</span></div>
+                            <input id="readingModule2Range" type="range" min="0" max="27" value="0" aria-label="Reading and Writing 2-modul to‘g‘ri javoblari">
+                        </div>
+                    </div>
+                    <p class="input-error" id="readingError" aria-live="polite"></p>
+                    <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="readingProgress"></div></div>
+                </section>
+
+                <section class="section-card math">
+                    <div class="section-heading">
+                        <h2>Math</h2>
+                        <span class="section-mark" aria-hidden="true">M</span>
+                    </div>
+                    <p class="section-description">Jami 44 ta savol</p>
+                    <span class="field-label">Modullar bo‘yicha to‘g‘ri javoblar</span>
+                    <div class="module-grid">
+                        <div class="module-card">
+                            <label class="module-title" for="mathModule1">1-modul · 22 savol</label>
+                            <div class="input-wrap"><input id="mathModule1" type="number" min="0" max="22" step="1" value="0" inputmode="numeric" aria-describedby="mathError"><span class="input-suffix">/ 22</span></div>
+                            <input id="mathModule1Range" type="range" min="0" max="22" value="0" aria-label="Math 1-modul to‘g‘ri javoblari">
+                        </div>
+                        <div class="module-card">
+                            <label class="module-title" for="mathModule2">2-modul · 22 savol</label>
+                            <div class="input-wrap"><input id="mathModule2" type="number" min="0" max="22" step="1" value="0" inputmode="numeric" aria-describedby="mathError"><span class="input-suffix">/ 22</span></div>
+                            <input id="mathModule2Range" type="range" min="0" max="22" value="0" aria-label="Math 2-modul to‘g‘ri javoblari">
+                        </div>
+                    </div>
+                    <p class="input-error" id="mathError" aria-live="polite"></p>
+                    <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="mathProgress"></div></div>
+                </section>
+            </div>
+
+            <section class="result" aria-live="polite" aria-atomic="true">
+                <p class="result-label">Taxminiy umumiy SAT balli</p>
+                <p class="total-score" id="totalScore">400</p>
+                <p class="score-range">Maksimal ball: 1600</p>
+                <div class="breakdown">
+                    <div class="breakdown-item">
+                        <span class="breakdown-title">Reading and Writing</span>
+                        <span class="breakdown-score" id="readingScore">200</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-title">Math</span>
+                        <span class="breakdown-score" id="mathScore">200</span>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="notice">
+                <span class="notice-icon" aria-hidden="true">i</span>
+                <p>Bu taxminiy hisob. Haqiqiy SAT balli savollarning qiyinligi va testning adaptiv modullariga qarab o‘zgaradi. Rasmiy natija bundan farq qilishi mumkin.</p>
+            </aside>
+        </section>
+        <p class="footer">Digital SAT: Reading and Writing — 54 savol · Math — 44 savol</p>
+    </main>
+
+    <script>
+        const sections = [
+            {
+                inputs: [
+                    { number: document.getElementById('readingModule1'), range: document.getElementById('readingModule1Range'), max: 27 },
+                    { number: document.getElementById('readingModule2'), range: document.getElementById('readingModule2Range'), max: 27 }
+                ],
+                max: 54, score: document.getElementById('readingScore'),
+                progress: document.getElementById('readingProgress'), error: document.getElementById('readingError')
+            },
+            {
+                inputs: [
+                    { number: document.getElementById('mathModule1'), range: document.getElementById('mathModule1Range'), max: 22 },
+                    { number: document.getElementById('mathModule2'), range: document.getElementById('mathModule2Range'), max: 22 }
+                ],
+                max: 44, score: document.getElementById('mathScore'),
+                progress: document.getElementById('mathProgress'), error: document.getElementById('mathError')
+            }
+        ];
+        const totalScore = document.getElementById('totalScore');
+        const themeToggle = document.getElementById('themeToggle');
+
+        function updateScores() {
+            let combinedScore = 0;
+            let hasError = false;
+
+            for (const section of sections) {
+                let correctTotal = 0;
+                let sectionValid = true;
+                for (const module of section.inputs) {
+                    const rawValue = module.number.value.trim();
+                    const correct = rawValue === '' ? 0 : Number(rawValue);
+                    const valid = Number.isInteger(correct) && correct >= 0 && correct <= module.max;
+                    module.number.setAttribute('aria-invalid', String(!valid));
+                    sectionValid = sectionValid && valid;
+                    if (valid) {
+                        correctTotal += correct;
+                        module.range.value = String(correct);
+                    }
+                }
+
+                section.error.textContent = sectionValid ? '' : 'Har bir modul uchun ruxsat etilgan oraliqda butun son kiriting.';
+                hasError = hasError || !sectionValid;
+                const safeCorrect = sectionValid ? correctTotal : 0;
+                const scaledScore = 200 + Math.round((safeCorrect / section.max) * 60) * 10;
+                section.score.textContent = String(scaledScore);
+                section.progress.style.width = `${(safeCorrect / section.max) * 100}%`;
+                combinedScore += scaledScore;
+            }
+
+            totalScore.textContent = hasError ? '—' : String(combinedScore);
+        }
+
+        for (const section of sections) {
+            for (const module of section.inputs) {
+                module.number.addEventListener('input', updateScores);
+                module.range.addEventListener('input', () => {
+                    module.number.value = module.range.value;
+                    updateScores();
+                });
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark');
+            themeToggle.setAttribute('aria-pressed', String(isDark));
+            themeToggle.textContent = isDark ? '☀️ Kunduzgi rejim' : '🌙 Tungi rejim';
+        });
+
+        updateScores();
+    </script>
+</body>
+</html>
